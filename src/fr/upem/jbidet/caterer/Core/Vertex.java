@@ -13,28 +13,28 @@ public class Vertex {
 	
 	private static int instance = 0;
 	private final int id; 
-	private int weight_vector;
+	private int vector_weight;
 	private List<Arc> arcs;
 	
 	/**
 	 * Crée un sommet avec un vecteur de poids et une liste d'arcs partant de ce dernier.<br>
-	 * @param weight_vector le vecteur de poids
+	 * @param vector_weight le vecteur de poids
 	 * @param arcs la liste d'arcs
 	 */
-	public Vertex(int weight_vector, List<Arc> arcs) {
+	public Vertex(int vector_weight, List<Arc> arcs) {
 		this.id = instance++;
-		this.weight_vector = weight_vector;
+		this.vector_weight = vector_weight;
 		this.arcs = arcs;
 	}
 	
 	/**
 	 * Crée un sommet avec un vecteur de poids et une liste d'arcs (passés en chaine) partant de ce dernier.<br>
-	 * @param weight_vector le vecteur de poids
+	 * @param vector_weight le vecteur de poids
 	 * @param arcs la liste d'arcs
 	 */
-	public Vertex(int weight_vector, Arc... arcs) {
+	public Vertex(int vector_weight, Arc... arcs) {
 		this.id = instance++;
-		this.weight_vector = weight_vector;
+		this.vector_weight = vector_weight;
 		this.arcs = new ArrayList<Arc>();
 		for(Arc a : arcs) {
 			this.arcs.add(a);
@@ -51,10 +51,10 @@ public class Vertex {
 	
 	/**
 	 * Retourne le vecteur de poids de ce sommet.<br>
-	 * @return <b>weight_vector</b> le vecteur de poids
+	 * @return <b>vector_weight</b> le vecteur de poids
 	 */
-	public int getWeightVector() {
-		return weight_vector;
+	public int getVectorWeight() {
+		return vector_weight;
 	}
 	
 	/**
@@ -97,7 +97,7 @@ public class Vertex {
 	@Override
 	public boolean equals(Object o) {
 		return o instanceof Vertex
-				&& ((Vertex)o).weight_vector == this.weight_vector
+				&& ((Vertex)o).vector_weight == this.vector_weight
 				&& ((Vertex)o).arcs.equals(this.arcs);
 	}
 	
@@ -106,11 +106,11 @@ public class Vertex {
 	 */
 	@Override
 	public String toString() {
-		return "\t\tVertex : {\n"
-				+ "\t\t\tid : " + id + "\n"
-				+ "\t\t\tweight_vector : " + weight_vector + "\n"
-				+ "\t\t\tarcs : {\n" + arcs.toString() + "\t\t\t}" + "\n"
-				+"\t\t}\n";
+		return "Vertex : {\n"
+				+ "\tid : " + id + "\n"
+				+ "\tvector_weight : " + vector_weight + "\n"
+				+ "\tarcs : {\n" + arcs.toString() + "\t}\n"
+				+"}\n";
 	}
 
 }

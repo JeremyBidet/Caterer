@@ -85,11 +85,11 @@ public class Arc {
 	 */
 	@Override
 	public String toString() {
-		return "\t\t\t\tArc : {\n"
-				+ "\t\t\t\t\tcost : " + cost + "\n"
-				+ "\t\t\t\t\tvertex A : " + vA.getId() + "\n"
-				+ "\t\t\t\t\tvertex B : " + vB.getId() + "\n"
-				+ "\t\t\t\t\t}\n";
+		return "Arc : {\n"
+				+ "\tcost : " + cost + "\n"
+				+ "\tvertex A : " + vA.getId() + "\n"
+				+ "\tvertex B : " + vB.getId() + "\n"
+				+ "\t}\n";
 	}
 
 }

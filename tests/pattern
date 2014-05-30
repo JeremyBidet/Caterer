@@ -1,23 +1,23 @@
 //***********************************************************// 
 //* Description du fichier :                                *//
-//*  Ce fichier reprÃ©sente un graphe avec ses donnÃ©es.      *//
-//*  Un graphe contient des sommets (ou noeuds) reliÃ©s par  *//
-//*  des arÃªtes, un vecteur des poids, et un coup pour      *//
-//*  pour chaque arÃªte du graphe.                           *//
+//*  Ce fichier représente un graphe avec ses données.      *//
+//*  Un graphe contient des sommets (ou noeuds) reliés par  *//
+//*  des arêtes, un vecteur des poids, et un coup pour      *//
+//*  pour chaque arête du graphe.                           *//
 //*                                                         *//
 //* Syntaxe du fichier : (1.=>ligne 1, 3+.=>ligne 3,4,5..)  *//
 //*  1.  entier : nombre de sommets dans le graphe          *//
 //*  2.  entiers : vecteur de poids pour chaque sommet      *//
-//*  3+. entier entier entier :
-//*         arÃªte partant du sommet entier(nÂ°1) vers le     *//
-//*         sommet entier(nÂ°2) avec un coup de entier(nÂ°3). *//
+//*  3+. entier entier entier :                             *//
+//*         arête partant du sommet entier(n°1) vers le     *//
+//*         sommet entier(n°2) avec un coup de entier(n°3). *//
 //*                                                         *//
-//* Commentaires :
+//* Commentaires :                                          *//
 //*  les commentaires sont sur une ligne et commencent par  *//
-//*  les caractÃ¨res : //                                    *//
+//*  les caractères : //                                    *//
 //*                                                         *//
 //* Ligne vide :                                            *//
-//*  Les lignes vides sont autorisÃ©es                       *//
+//*  Les lignes vides sont autorisées                       *//
 //***********************************************************//
 
 5

@@ -16,27 +16,32 @@ public interface FilePattern {
 
 	public final String graphRegExp = ""
 			+ "(?<graph>"
-					+ "(\\s*(//.*)?)*" // commentaires avant <vertexquantity>
-					+ "((?<vertex>\\d+)" 						+ "[ \\t]*(//.*)?" + "\\n)" // commentaire fin <vertexquantity>
-					+ "(\\s*(//.*)?)*" // commentaires entre <vertexquantity> et <vertexlist>
-					+ "((?<vertexlist>(-?\\d+ ?)+)"				+ "[ \\t]*(//.*)?" + ")" // commentaire fin <vertexlist>
-					+ "(\\s*(//.*)?)*" // commentaires entre <vertexlist> et <arclist>
-					+ "(?<arclist>"
-							+ "(\\s*(//.*)?)*" // commentaires entre les arcs
-							+ "(\\n(\\d+) (\\d+) (-?\\d+)"		+ "[ \\t]*(//.*)?" + ")+)" // commentaire fin <arc>
-					+ "(\\s*(//.*)?)*" // commentaires apres <arclist>
+				+ "(\\s*(//.*)?)*" 								// commentaires avant <vertexQuantity>
+				+ "(?<vertexQuantity>[+]?\\d+)"					// nombre de sommets
+				+ "(\\s*(//.*)?)*" + "\\n"						// commentaires entre <vertexQuantity> et <vertexList>
+				+ "(?<vertexList>"
+					+ "([+-]?\\d+ )+"							// liste des poids des sommets (sauf le dernier)
+					+ "([+-]?\\d+)"								// le dernier poids de sommet de la liste
+				+ ")"
+				+ "(?<arcList>"									// liste des arcs du graphe
+					+ "("
+						+ "(\\s*(//.*)?)*" + "\\n"				// commentaires entre <vertexList> et <arcList>, ou à la fin d'un <arc>, ou entre les <arc>
+						+ "([+]?\\d+) ([+]?\\d+) ([+-]?\\d+)"	// un arc avec son vA, vB et son coût
+					+ ")+"
+				+ ")"
+				+ "(\\s*(//.*)?)*"								// commentaires de fin de fichiers (après <arcList>)
 			+ ")";
 	
 	public final String vertexRegExp = ""
-			+ "(?<weight>-?\\d+" + " ?)+";
+			+ "((?<vertexWeight>[+-]?\\d+) ?)"; // liste des poids des sommets (sauf le dernier)
 	
 	public final String arcRegExp = ""
-			+ "(\\s*(//.*)?)*" // commentaires entre les <arc>
-			+ "(?<arc>\\n"
-					+ "(?<vertexA>\\d+)" + " "
-					+ "(?<vertexB>\\d+)" + " "
-					+ "(?<cost>-?\\d+)"		+ "[ \\t]*(?<comment3>//.*)?" // commentaire fin <arc>
-			+ ")+";
+			+ "(?<arc>"
+				+ "(\\s*(//.*)?)*" + "\\n"		// commentaires entre <vertexList> et <arcList>, ou à la fin d'un <arc>, ou entre les <arc>
+				+ "(?<vertexA>[+]?\\d+)" + " "	// sommet A de l'arc
+				+ "(?<vertexB>[+]?\\d+)" + " "	// sommet B de l'arc
+				+ "(?<cost>[+-]?\\d+)" 			// coût de l'arc
+			+ ")";
 	
 	/**
 	 * Extrait les données d'un graphe depuis un fichier et renvoie une instance de ce graphe.<br>

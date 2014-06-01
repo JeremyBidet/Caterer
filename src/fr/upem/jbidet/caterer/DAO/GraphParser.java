@@ -23,7 +23,36 @@ import fr.upem.jbidet.caterer.Core.Vertex;
  * @version 1.0
  */
 public class GraphParser implements FilePattern {
-
+		
+	private int[] parseVertex(String vertexList, int vertexQuantity) throws FilerException {
+		Pattern p = Pattern.compile(vertexRegExp);
+		Matcher m = p.matcher(vertexList);
+		int[] vertex = new int[vertexQuantity];
+		int i = 0;
+		while(m.find()) {
+			vertex[i] = Integer.parseInt(m.group("vertexWeight"));
+			i++;
+		}
+		if(i != vertexQuantity) {
+			throw new FilerException("File is corrupted : vertex quantity is not equal to vertex weight quantity !");
+		}
+		return vertex;
+	}
+	
+	private List<int[]> parseArc(String arcList) {
+		Pattern p = Pattern.compile(arcRegExp);
+		Matcher m = p.matcher(arcList);
+		List<int[]> arc = new ArrayList<int[]>();;
+		while(m.find()) {
+			int[] tmp = new int[3];
+			tmp[0] = Integer.parseInt(m.group("vertexA"));
+			tmp[1] = Integer.parseInt(m.group("vertexB"));
+			tmp[2] = Integer.parseInt(m.group("cost"));
+			arc.add(tmp);
+		}
+		return arc;
+	}
+	
 	@Override
 	public Graph parseFile(File file) throws FilerException, FileNotFoundException {
 		
@@ -38,10 +67,9 @@ public class GraphParser implements FilePattern {
 			BufferedReader br = new BufferedReader(new FileReader(file));
 			StringBuilder sb = new StringBuilder();;
 			for (String line; (line = br.readLine()) != null; ) {
-				sb.append(line);
+				sb.append(line).append("\n");
 			}
 			br.close();
-			
 			String content = sb.toString();
 			
 			Pattern p = Pattern.compile(graphRegExp);
@@ -51,10 +79,29 @@ public class GraphParser implements FilePattern {
 				throw new FilerException(file.getName() + " is corrupted !");
 			}
 			
-			List<Vertex> vertex = new ArrayList<Vertex>();
+			Graph graph = new Graph(file.getName());
+			/* parse le nombre de sommets */
+			int vertexQuantity = Integer.parseInt(m.group("vertexQuantity"));
+			/* instancie les sommets avec leur poids */
+			int[] vertex = parseVertex(m.group("vertexList"), vertexQuantity);
+			List<Vertex> vertexs = new ArrayList<Vertex>(vertexQuantity);
+			for(int v : vertex) {
+				vertexs.add(new Vertex(v));
+			}
+			/* instancie les arcs avec leurs sommets et coût */
+			List<int[]> arc = parseArc(m.group("arcList"));
 			List<Arc> arcs = new ArrayList<Arc>();
+			for(int[] a : arc) {
+				arcs.add(new Arc(vertexs.get(a[0]), vertexs.get(a[1]), a[2]));
+			}
+			/* définie les arcs des sommets */
+			for(Vertex v : vertexs) {
+				v.addArcs(subList(arcs, v));
+			}
+			graph.setVertex(vertexs);
+			graph.setArcs(arcs);
 			
-			return new Graph(file.getName(), vertex, arcs);
+			return graph;
 			
 		} catch(FileNotFoundException e) {
 			e.printStackTrace();
@@ -62,6 +109,16 @@ public class GraphParser implements FilePattern {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	private List<Arc> subList(List<Arc> arcs, Vertex vertex) {
+		List<Arc> arc = new ArrayList<Arc>();
+		for(Arc a : arcs) {
+			if( a.getVertexA().equals(vertex) || a.getVertexB().equals(vertex) ) {
+				arc.add(a);
+			}
+		}
+		return arc;
 	}
 
 }

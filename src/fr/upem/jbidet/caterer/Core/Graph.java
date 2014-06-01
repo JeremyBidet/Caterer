@@ -40,6 +40,8 @@ public class Graph {
 		this.name = name;
 		this.vertex = new ArrayList<Vertex>();
 		this.arcs = new ArrayList<Arc>();
+		Vertex.resetInstance();
+		Arc.resetInstance();
 	}
 	
 	/**
@@ -109,18 +111,39 @@ public class Graph {
 	}
 	
 	/**
+	 * Définie la liste des sommets du graphe.<br>
+	 * @param vertex la liste des sommets
+	 */
+	public void setVertex(List<Vertex> vertex) {
+		this.vertex = vertex;
+	}
+	
+	/**
+	 * Définie la liste des arcs du graphe.<br>
+	 * @param arc la liste des arcs
+	 */
+	public void setArcs(List<Arc> arc) {
+		this.arcs = arc;
+	}
+	
+	/**
 	 * Ajoute un sommet au graphe.<br>
 	 * @param v le sommet à ajouter
 	 * @return <b>true</b> si l'ajout s'est bien passé, sinon <b>false</b>
 	 */
-	public boolean addVertex(Vertex v) {
-		return vertex.add(v);
+	public boolean addVertex(Vertex vertex) {
+		return this.vertex.add(vertex);
 	}
 	
-	public boolean addVertex(Vertex... vs) {
+	/**
+	 * Ajoute des sommets au graphe.<br>
+	 * @param vs les sommets à ajouter
+	 * @return <b>true</b> si l'ajout s'est bien passé, sinon <b>false</b>
+	 */
+	public boolean addVertex(Vertex... vertex) {
 		boolean b = true;
-		for(Vertex v : vs) {
-			b &= vertex.add(v);
+		for(Vertex v : vertex) {
+			b &= this.vertex.add(v);
 		}
 		return b;
 	}
@@ -130,14 +153,19 @@ public class Graph {
 	 * @param a l'arc à ajouter
 	 * @return <b>true</b> si l'ajout s'est bien passé, sinon <b>false</b>
 	 */
-	public boolean addArc(Arc a) {
-		return arcs.add(a);
+	public boolean addArc(Arc arc) {
+		return arcs.add(arc);
 	}
 	
-	public boolean addArcs(Arc... as) {
+	/**
+	 * Ajoute des arcs au graphe.<br>
+	 * @param as les arcs à ajouter
+	 * @return <b>true</b> si l'ajout s'est bien passé, sinon <b>false</b>
+	 */
+	public boolean addArcs(Arc... arcs) {
 		boolean b = true;
-		for(Arc a : as) {
-			b &= arcs.add(a);
+		for(Arc a : arcs) {
+			b &= this.arcs.add(a);
 		}
 		return b;
 	}

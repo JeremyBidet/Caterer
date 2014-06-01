@@ -8,6 +8,8 @@ package fr.upem.jbidet.caterer.Core;
  */
 public class Arc {
 	
+	private static int instance = 0;
+	private int id;
 	private Vertex vA;
 	private Vertex vB;
 	private int cost;
@@ -19,6 +21,7 @@ public class Arc {
 	 * @param cost le coût associé à cet arc.
 	 */
 	public Arc(Vertex vA, Vertex vB, int cost) {
+		this.id = instance++;
 		this.vA = vA;
 		this.vB = vB;
 		this.cost = cost;
@@ -29,7 +32,16 @@ public class Arc {
 	 * @param cost le coût de l'arc
 	 */
 	public Arc(int cost) {
+		this.id = instance++;
 		this.cost = cost;
+	}
+	
+	/**
+	 * Retourne l'identifiant de l'arc.<br>
+	 * @return <b>id</b> l'identifiant
+	 */
+	public int getId() {
+		return id;
 	}
 	
 	/**
@@ -56,17 +68,11 @@ public class Arc {
 		return vB;
 	}
 	
-	public void setVertexA(Vertex vA) {
-		this.vA = vA;
-	}
-	
-	public void setVertexB(Vertex vB) {
-		this.vB = vB;
-	}
-	
-	public void setVertex(Vertex vA, Vertex vB) {
-		setVertexA(vA);
-		setVertexB(vB);
+	/**
+	 * Remet à zéro le compteur d'instance.<br>
+	 */
+	protected static void resetInstance() {
+		instance = 0;
 	}
 	
 	/**
@@ -75,6 +81,7 @@ public class Arc {
 	@Override
 	public boolean equals(Object o) {
 		return o instanceof Arc
+				&& ((Arc)o).id == id
 				&& ((Arc)o).cost == cost
 				&& ((Arc)o).vA.equals(vA)
 				&& ((Arc)o).vB.equals(vB);

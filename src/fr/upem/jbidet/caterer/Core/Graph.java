@@ -17,6 +17,12 @@ public class Graph {
 	private List<Vertex> vertex;
 	private List<Arc> arcs;
 	
+	public Graph() {
+		this.id = -1;
+		Vertex.resetInstance();
+		Arc.resetInstance();
+	}
+	
 	/**
 	 * Crée un graphe avec un nom, une liste de sommets et une liste d'arcs.<br>
 	 * Les sommets sont reliés entre eux par ses arcs.<br>

@@ -1,11 +1,9 @@
 package fr.upem.jbidet.caterer;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-
-import javax.annotation.processing.FilerException;
 
 import fr.upem.jbidet.caterer.Core.Graph;
+import fr.upem.jbidet.caterer.Core.Vertex;
 import fr.upem.jbidet.caterer.DAO.GraphParser;
 
 /**
@@ -17,14 +15,21 @@ public class Main {
 	public static void main(String[] args) {
 		
 		GraphParser gp = new GraphParser();
-		File file = new File("tests/testregexs");
-		try {
-			Graph graph2 = gp.parseFile(file);
-			System.out.println(graph2);
-		} catch (FilerException e) {
-			e.printStackTrace();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+		File file = new File("tests/testregex");
+		Graph graph;
+		if((graph = gp.parseFile(file)) == null) {
+			System.out.println("! This file is corrupted !");
+			return;
+		}
+		int sum = 0;
+		for(Vertex v : graph.getVertex()) {
+			sum += v.getVertexWeight();
+		}
+		if(sum != 0) {
+			System.out.println("Erreur ! Offre et demande non égale !");
+			return;
+		} else {
+			System.out.println("Ok !");
 		}
 		
 	}

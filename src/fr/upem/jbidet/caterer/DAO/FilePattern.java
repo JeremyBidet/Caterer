@@ -51,6 +51,6 @@ public interface FilePattern {
 	 * @throws FileNotFoundException 
 	 * @see Graph
 	 */
-	public Graph parseFile(File file) throws FilerException, FileNotFoundException;
+	public Graph parseFile(File file);
 	
 }

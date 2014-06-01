@@ -54,14 +54,7 @@ public class GraphParser implements FilePattern {
 	}
 	
 	@Override
-	public Graph parseFile(File file) throws FilerException, FileNotFoundException {
-		
-		if( !file.exists() ) {
-			throw new FileNotFoundException(file.getName());
-		}
-		if( !file.canRead() ) {
-			throw new FilerException(file.getName() + " cannot be read !");
-		}
+	public Graph parseFile(File file) {
 		
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(file));
@@ -76,7 +69,7 @@ public class GraphParser implements FilePattern {
 			Matcher m = p.matcher(content);
 			
 			if( !m.matches() ) {
-				throw new FilerException(file.getName() + " is corrupted !");
+				return null;
 			}
 			
 			Graph graph = new Graph(file.getName());
@@ -108,6 +101,7 @@ public class GraphParser implements FilePattern {
 		} catch(IOException e) {
 			e.printStackTrace();
 		}
+		
 		return null;
 	}
 	

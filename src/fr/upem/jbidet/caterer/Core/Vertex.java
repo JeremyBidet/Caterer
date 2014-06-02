@@ -158,6 +158,7 @@ public class Vertex {
 		return "Vertex : {\n"
 				+ "\tid : " + id + "\n"
 				+ "\tvertex_weight : " + vertex_weight + "\n"
+				+ "\tcost : " + cost + "\n"
 				+ "\tarcs : {\n" + arcs.toString() + "\t}\n"
 				+"}\n";
 	}

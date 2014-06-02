@@ -2,8 +2,10 @@ package fr.upem.jbidet.caterer.Solver;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import fr.upem.jbidet.caterer.Core.Arc;
 import fr.upem.jbidet.caterer.Core.FakeArc;
@@ -11,8 +13,14 @@ import fr.upem.jbidet.caterer.Core.Graph;
 import fr.upem.jbidet.caterer.Core.Vertex;
 
 public class Simplex {
-
+	
 	private static Graph solution;
+	
+	static class Struct {
+		int arcno;
+		Vertex v;
+		Struct(int arcno, Vertex v) { this.arcno = arcno; this.v = v; }
+	}
 	
 	public static enum Response {
 		OK,
@@ -72,33 +80,43 @@ public class Simplex {
 			}
 			if(v.getVertexWeight() < 0) {
 				boolean add = true;
+				List<Arc> toRemove = new ArrayList<Arc>(v.getArcs().size());
 				for(Arc a : v.getArcs()) {
 					if(a.getVertexB().equals(w)) {
 						add &= false;
 						a.setFlow(-v.getVertexWeight());
 					} else {
-						v.removeArc(a); // supprime de la liste du sommet, pas du graphe
+						toRemove.add(a); // ajoute à la liste de suppression
 					}
+				}
+				for(Arc a : toRemove) {
+					v.removeArc(a); // supprime de la liste du sommet, pas du graphe
 				}
 				if(add) {
 					Arc a = new FakeArc(v, w, 1, -v.getVertexWeight());
 					v.addArc(a);
+					w.addArc(a);
 					solution.addArc(a);
 				}
 			}
 			if(v.getVertexWeight() >= 0) {
 				boolean add = true;
+				List<Arc> toRemove = new ArrayList<Arc>(v.getArcs().size());
 				for(Arc a : v.getArcs()) {
 					if(a.getVertexA().equals(w)) {
 						add &= false;
 						a.setFlow(v.getVertexWeight());
 					} else {
-						v.removeArc(a); // supprime de la liste du sommet, pas du graphe
+						toRemove.add(a); // ajoute à la liste de suppression
 					}
+				}
+				for(Arc a : toRemove) {
+					v.removeArc(a); // supprime de la liste du sommet, pas du graphe
 				}
 				if(add) {
 					Arc a = new FakeArc(w, v, 1, v.getVertexWeight());
 					v.addArc(a);
+					w.addArc(a);
 					solution.addArc(a);
 				}
 			}
@@ -139,25 +157,26 @@ public class Simplex {
 	}
 	
 	/**
-	 * Met à jour les coût de chaque sommet dans la solution
+	 * Met à jour les coût de chaque sommet à partir d'un sommet source arbitraire dans la solution
 	 */
 	private static void updateCost() {
 		for(Vertex v : solution.getVertex()) {
 			if(v.getVertexWeight() < 0) {
-				updateCostRecursive(v);
+				updateCostRecursive(v, null);
 				return;
 			}
 		}
 	}
-	private static void updateCostRecursive(Vertex v) {
+	private static void updateCostRecursive(Vertex v, Vertex l) {
 		for(Arc a : v.getArcs()) {
-			if(a.getVertexB().getCost() == 0) {
+			if(!a.getVertexA().equals(l) && !a.getVertexB().equals(l)) {
 				if(a.getVertexA().equals(v)) {
 					a.getVertexB().setCost(v.getCost() + a.getCost());
+					updateCostRecursive(a.getVertexB(), a.getVertexA());
 				} else {
-					a.getVertexB().setCost(v.getCost() - a.getCost());
+					a.getVertexA().setCost(v.getCost() - a.getCost());
+					updateCostRecursive(a.getVertexA(), a.getVertexB());
 				}
-				updateCostRecursive(a.getVertexB());
 			}
 		}
 	}
@@ -167,37 +186,38 @@ public class Simplex {
 	 * @param graph le graphe d'origine
 	 */
 	private static boolean simplex() {
-		List<Arc> f_arc = new ArrayList<Arc>();
+		Set<Arc> tmp_f_arc = new HashSet<Arc>();
 		List<Arc> e_arc = new ArrayList<Arc>();
 		for(Vertex v : solution.getVertex()) {
-			f_arc.addAll(v.getArcs());
+			tmp_f_arc.addAll(v.getArcs());
 		}
+		List<Arc> f_arc = new ArrayList<Arc>(tmp_f_arc);
 		for(Arc a : solution.getArcs()) {
 			if(!f_arc.contains(a)) {
 				e_arc.add(a);
 			}
 		}
 		
-		/* on cherche l'arc e plus interessant */
-		Arc e = new Arc(-1);
+		/* on cherche l'arc le plus interessant */
+		Arc e = new Arc(Integer.MAX_VALUE);
 		for(Arc a : e_arc) {
 			for(Arc aa : a.getVertexB().getArcs()) {
-				if	(	a.getVertexA().getCost() + a.getCost() < e.getCost() 
-					|| (a.getVertexA().getCost() + a.getCost() < aa.getCost() 
-							&& aa.getVertexB().equals(a.getVertexB())
+				if	(	a.getVertexA().getCost() + a.getCost() < e.getCost() // si l'arc e (=a) testé est mieux que le précédent e
+					&& (a.getVertexA().getCost() + a.getCost() < aa.getCost() // ou si l'arc e (=a) testé est mieux que l'un des arcs du sommet de destination
+							&& aa.getVertexB().equals(a.getVertexB()) // et si cet arc est entrant dans le sommet de destination (sens contraire)
 						)
 					) {
 					e = a;
-					a.getVertexA().addArc(a);
-					a.getVertexB().addArc(a);
 				}
 			}
 		}
-		if(e.getCost() == -1) { /* pas d'arc e plus interessant, solution optimale trouvée */
+		if(e.getCost() == Integer.MAX_VALUE) { /* pas d'arc e plus interessant, solution optimale trouvée */
 			return true;
 		}
+		e.getVertexA().addArc(e);
+		e.getVertexB().addArc(e);
 		/* on cherche l'arc f de sens contraire le moins interessant (coût le plus élevé) */
-		findF(e); //TODO: findF is to do
+		findF(e);
 		updateCost();
 		
 		return false | simplex();
@@ -214,13 +234,17 @@ public class Simplex {
 	}
 	
 	private static void findF(Arc e) {
-		// TODO: crée la liste des arcs du cycle, en supprimant de la copie tous les arcs qui ne sont pas dans le cycle
-		List<Vertex> copy = new ArrayList<Vertex>(solution.getVertex());
-		List<Arc> cycle = new ArrayList<Arc>();
-		Map<Integer, Vertex> map = new HashMap<Integer, Vertex>();
-		copy = removeLeaf(e.getVertexB(), e.getVertexA(), copy, map); // supprime les feuilles et colore le graphe
-		copy = extractCycle(e.getVertexB(), e.getVertexA(), copy, map); // supprime les sommets qui ne sont pas dans le cycle
-		cycle = fillCycle(e, e.getVertexA(), cycle, copy); // remplit le cycle
+		// crée la liste des arcs du cycle, en supprimant de la copie tous les arcs qui ne sont pas dans le cycle
+		List<Vertex> tmp_cycle = new ArrayList<Vertex>(solution.getVertex());
+		List<Arc> cycle = new ArrayList<Arc>(tmp_cycle.size());
+		
+		Set<Arc> visited = new HashSet<Arc>();
+		Map<Integer, Struct> struct = new HashMap<Integer, Struct>();
+		for(Vertex v : solution.getVertex()) {
+			struct.put(v.getId(), new Struct(v.getArcs().size(), v));
+		}
+		findCycle(e.getVertexB(), e.getVertexA(), tmp_cycle, visited, struct);
+		sortCycle(e, e.getVertexB(), cycle, tmp_cycle);
 		
 		// puis cherche dans ce cycle l'arc en sens inverse ayant le plus fort coût.
 		Arc f = e;
@@ -228,106 +252,87 @@ public class Simplex {
 		Vertex vA = e.getVertexB();
 		for(Arc a : cycle) {
 			if(a.getVertexB().equals(vA) && a.getCost() > max) {
+				max = a.getCost();
 				f = a; // plus grand coût dans le sens contraire du cycle
 			}
+			vA = a.getVertexA();
 		}
+		
 		int f_flow = f.getFlow();
 		f.getVertexA().getArcs().remove(f);
 		f.getVertexB().getArcs().remove(f);
-		cycle.remove(f);
-		updateFlow(cycle, e, f_flow);
+		solution.getArcs().remove(f);
+		updateFlow(cycle, e.getVertexB(), f_flow);
+		cycle.remove(f); // doit être fait après pour mettre à jour les flots correctement
 	}
 	
-	private static List<Vertex> removeLeaf(Vertex v, Vertex l, List<Vertex> copy, Map<Integer, Vertex> map) {
-		if(v.getArcs().size() == 1) { // feuille du graphe
-			copy.remove(v); // le sommet ne fait pas partie du cycle
-			map.put(v.hashCode(), v); // on ajoute le sommet à la liste des sommets déjà visités
-		}
-		/* cherche et supprime les feuilles */
-		for(Arc a : v.getArcs()) {
-			if(a.getVertexA().equals(l) || a.getVertexB().equals(l)) {
-				continue;
+	private static void findCycle(Vertex b, Vertex a, List<Vertex> cycle, Set<Arc> visited, Map<Integer, Struct> struct) {
+		for(Arc arc : b.getArcs()) {
+			if(arc.getVertexA().equals(a) || arc.getVertexB().equals(a)) {
+				continue; // arc d'où l'on vient
 			}
-			if(a.getVertexA().equals(v)) {
-				if(!map.containsKey(v.hashCode())) {
-					copy = removeLeaf(a.getVertexB(), v, copy, map);
+			if(visited.contains(arc)) {
+				continue; // arc déjà visité avant
+			}
+			visited.add(arc);
+			if(arc.getVertexA().equals(b)) { // l'arc sort de b
+				if(struct.get(arc.getVertexB().getId()).arcno == 1) { // si le sommet suivant est une feuille
+					cycle.remove(arc.getVertexB());	// on le supprime de la liste
+					struct.get(b.getId()).arcno--; // et on décrémente le nombre d'arc du sommet actuel
+				} else {
+					findCycle(arc.getVertexB(), b, cycle, visited, struct); // on va au sommet suivant
+					if(struct.get(arc.getVertexB().getId()).arcno == 1) { // après avoir réduit le sommet suivant on test s'il
+						cycle.remove(arc.getVertexB()); // n'est pas devenue une feuille à son tour, on le supprime dans ce cas
+						struct.get(b.getId()).arcno--; // et on décrémente le nombre d'arc du sommet actuel
+					}
 				}
-			} else {
-				if(!map.containsKey(v.hashCode())) {
-					copy = removeLeaf(a.getVertexA(), v, copy, map);
-				}
-			}
-			if(!map.containsKey(v.hashCode())) {
-				map.put(v.hashCode(), v);
-			}
-		}
-		return copy;
-	}
-	
-	private static List<Vertex> extractCycle(Vertex v, Vertex l, List<Vertex> copy, Map<Integer, Vertex> map) {
-		/* cherche si le sommet possède un arc vers un sommet déjà visité non supprimé */
-		for(Arc a : v.getArcs()) {
-			boolean pass = false;
-			if(a.getVertexA().equals(l) || a.getVertexB().equals(l)) {
-				continue;
-			}
-			// si le sommet opposé de l'arc existe toujours et est visité alors v fait partie du cycle
-			if(a.getVertexA().equals(v)) {
-				if(map.containsKey(a.getVertexA().hashCode()) && copy.contains(a.getVertexA())) {
-					copy = extractCycle(a.getVertexB(), v, copy, map);
-					pass = true; // sommet du cycle confirmé, plus besoin de chercher dans les autres arcs de ce sommet
-				}
-			} else if(a.getVertexB().equals(v)) {
-				if(map.containsKey(a.getVertexB().hashCode()) && copy.contains(a.getVertexB())) {
-					copy = extractCycle(a.getVertexA(), v, copy, map);
-					pass = true; // sommet du cycle confirmé, plus besoin de chercher dans les autres arcs de ce sommet
-				}
-			} else {
-				copy.remove(v);
-			}
-			if(pass) {
-				break;
-			}
-		}
-		return copy;
-	}
-	
-	private static List<Arc> fillCycle(Arc arc, Vertex e, List<Arc> cycle, List<Vertex> copy) {
-		if(e.equals(arc)) {
-			return cycle;
-		}
-		for(Vertex v : copy) {
-			if(    (arc.getVertexB().equals(v) && arc.getVertexA().equals(e))
-				|| (arc.getVertexA().equals(v) && arc.getVertexB().equals(e))) {
-				for(Arc a : v.getArcs()) {
-					if(a.getVertexA().equals(v)) {
-						for(Vertex t : copy) {
-							if(a.getVertexB().equals(t)) {
-								cycle.add(a);
-								cycle = fillCycle(a, a.getVertexA(), cycle, copy);
-							}
-						}
-					} else {
-						for(Vertex t : copy) {
-							if(a.getVertexA().equals(t)) {
-								cycle.add(a);
-								cycle = fillCycle(a, a.getVertexB(), cycle, copy);
-							}
-						}
+			} else { // l'arc entre dans b
+				if(struct.get(arc.getVertexA().getId()).arcno == 1) { // si le sommet suivant est une feuille
+					cycle.remove(arc.getVertexA());	// on le supprime de la liste
+					struct.get(b.getId()).arcno--; // et on décrémente le nombre d'arc du sommet actuel
+				} else {
+					findCycle(arc.getVertexA(), b, cycle, visited, struct);
+					if(struct.get(arc.getVertexA().getId()).arcno == 1) { // après avoir réduit le sommet suivant on test s'il
+						cycle.remove(arc.getVertexA()); // n'est pas devenue une feuille à son tour, on le supprime dans ce cas
+						struct.get(b.getId()).arcno--; // et on décrémente le nombre d'arc du sommet actuel
 					}
 				}
 			}
 		}
-		return cycle; // should never called
 	}
 	
-	private static void updateFlow(List<Arc> cycle, Arc e, int flow) {
-		Vertex vA = e.getVertexB();
+	private static void sortCycle(Arc arc, Vertex e, List<Arc> cycle, List<Vertex> tmp_cycle) {
+		if(cycle.size() == tmp_cycle.size()) {
+			return; // il y autant d'arcs dans le cycle que de sommets
+		}
+		for(Arc a : e.getArcs()) {
+			if(a.getVertexA().equals(e)) {
+				if(tmp_cycle.contains(a.getVertexB())) {
+					if(!cycle.contains(a)) {
+						cycle.add(a);
+						sortCycle(a, a.getVertexB(), cycle, tmp_cycle);
+					}
+				}
+			} else {
+				if(tmp_cycle.contains(a.getVertexA())) {
+					if(!cycle.contains(a)) {
+						cycle.add(a);
+						sortCycle(a, a.getVertexA(), cycle, tmp_cycle);
+					}
+				}
+			}
+		}
+	}
+	
+	private static void updateFlow(List<Arc> cycle, Vertex v, int flow) {
+		Vertex vA = v;
 		for(Arc a : cycle) {
 			if(a.getVertexB().equals(vA)) {
 				a.setFlow(a.getFlow() - flow);
+				vA = a.getVertexA();
 			} else {
 				a.setFlow(a.getFlow() + flow);
+				vA = a.getVertexB();
 			}
 		}
 	}

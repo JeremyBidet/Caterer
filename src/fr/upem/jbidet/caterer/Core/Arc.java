@@ -151,6 +151,7 @@ public class Arc {
 	public String toString() {
 		return "Arc : {\n"
 				+ "\tcost : " + cost + "\n"
+				+ "\tflow : " + flow + "\n"
 				+ "\tvertex A : " + vA.getId() + "\n"
 				+ "\tvertex B : " + vB.getId() + "\n"
 				+ "\t}\n";

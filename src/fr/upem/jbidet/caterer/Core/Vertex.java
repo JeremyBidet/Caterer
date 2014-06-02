@@ -162,6 +162,15 @@ public class Vertex {
 				+"}\n";
 	}
 	
+	/**
+	 * Simple hash code pour un sommet : renvoie l'<b>id</b>.<br>
+	 * @return <b>id</b> l'idientifiant du sommet
+	 */
+	@Override
+	public int hashCode() {
+		return id;
+	}
+	
 	public Vertex clone() {
 		return new Vertex(vertex_weight, arcs);
 	}

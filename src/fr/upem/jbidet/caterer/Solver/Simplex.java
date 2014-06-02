@@ -1,7 +1,9 @@
 package fr.upem.jbidet.caterer.Solver;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import fr.upem.jbidet.caterer.Core.Arc;
 import fr.upem.jbidet.caterer.Core.FakeArc;
@@ -212,9 +214,11 @@ public class Simplex {
 	}
 	
 	private static void findF(Arc e) {
-		// TODO: crée la liste des arcs du cycle,
+		// TODO: crée la liste des arcs du cycle, en supprimant de la copie tous les arcs qui ne sont pas dans le cycle
+		List<Vertex> copy = new ArrayList<Vertex>(solution.getVertex());
 		List<Arc> cycle = new ArrayList<Arc>();
-		// ... //
+		Map<Integer, Vertex> map = new HashMap<Integer, Vertex>();
+		findFRecursive(e.getVertexB(), e.getVertexA(), copy, map);
 		
 		// puis cherche dans ce cycle l'arc en sens inverse ayant le plus fort coût.
 		Arc f = e;
@@ -230,6 +234,46 @@ public class Simplex {
 		f.getVertexB().getArcs().remove(f);
 		cycle.remove(f);
 		updateFlow(cycle, e, f_flow);
+	}
+	
+	private static List<Vertex> findFRecursive(Vertex v, Vertex l, List<Vertex> copy, Map<Integer, Vertex> map) {
+		if(v.getArcs().size() == 1) { // feuille du graphe
+			copy.remove(v); // le sommet ne fait pas partie du cycle
+			map.put(v.hashCode(), v); // on ajoute le sommet à la liste des sommets déjà visités
+		}
+		/* cherche et supprime les feuilles */
+		for(Arc a : v.getArcs()) {
+			if(a.getVertexA().equals(l) || a.getVertexB().equals(l)) {
+				continue;
+			}
+			if(a.getVertexA().equals(v)) {
+				if(!map.containsKey(v.hashCode())) {
+					copy = findFRecursive(a.getVertexB(), a.getVertexA(), copy, map);
+				}
+			} else {
+				if(!map.containsKey(v.hashCode())) {
+					copy = findFRecursive(a.getVertexA(), a.getVertexB(), copy, map);
+				}
+			}
+			if(!map.containsKey(v.hashCode())) {
+				map.put(v.hashCode(), v);
+			}
+		}
+		/* cherche si le sommet possède un arc vers un sommet déjà visité non supprimé */
+		for(Arc a : v.getArcs()) {
+			if(a.getVertexA().equals(l) || a.getVertexB().equals(l)) {
+				continue;
+			}
+			// si le sommet opposé de l'arc existe toujours et est visité alors v fait partie du cycle
+			if(	   (a.getVertexA().equals(v) && map.containsKey(a.getVertexB().hashCode()) && copy.contains(a.getVertexB()))
+				|| (a.getVertexB().equals(v) && map.containsKey(a.getVertexA().hashCode()) && copy.contains(a.getVertexA()))
+			 ) {
+				break;
+			} else {
+				copy.remove(v);
+			}
+		}
+		return copy;
 	}
 	
 

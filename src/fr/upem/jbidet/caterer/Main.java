@@ -5,15 +5,18 @@ import java.io.File;
 import fr.upem.jbidet.caterer.Core.Graph;
 import fr.upem.jbidet.caterer.Core.Vertex;
 import fr.upem.jbidet.caterer.DAO.GraphParser;
+import fr.upem.jbidet.caterer.Solver.Simplex;
 
 /**
  * @author Melody
+ * @author Jeremy
  * @version 1.0
  */
 public class Main {
 
 	public static void main(String[] args) {
 		
+		/** CREATION ARBRE INITIAL **/
 		GraphParser gp = new GraphParser();
 		File file = new File("tests/testregex");
 		Graph graph;
@@ -21,6 +24,7 @@ public class Main {
 			System.out.println("! This file is corrupted !");
 			return;
 		}
+		/* vérifie que le nombre de sommets déclarés correspond au nombre de sommets insérés dans le graphe */
 		int sum = 0;
 		for(Vertex v : graph.getVertex()) {
 			sum += v.getVertexWeight();
@@ -28,9 +32,13 @@ public class Main {
 		if(sum != 0) {
 			System.out.println("Erreur ! Offre et demande non égale !");
 			return;
-		} else {
-			System.out.println("Ok !");
 		}
+		/** FIN CREATION **/
+		
+		/** RESOLUTION PROBLEME **/
+		Graph solution = Simplex.solve(graph);
+		System.out.println("Solution :\n" + solution);
+		/** FIN RESOLUTION **/
 		
 	}
 

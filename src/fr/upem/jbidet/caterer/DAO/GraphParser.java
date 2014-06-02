@@ -91,6 +91,7 @@ public class GraphParser implements FilePattern {
 			for(Vertex v : vertexs) {
 				v.addArcs(subList(arcs, v));
 			}
+			graph.setVertexQuantity(vertexQuantity);
 			graph.setVertex(vertexs);
 			graph.setArcs(arcs);
 			

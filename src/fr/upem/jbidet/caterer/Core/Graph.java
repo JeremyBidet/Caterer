@@ -7,18 +7,27 @@ import java.util.List;
  * Représente un graphe possédant des sommets ({@link Vertex}) et des arcs ({@link Arc}).<br>
  * Un graphe possède en plus un id et un nom pour l'identifier.<br>
  * @author Jeremy
+ * @author Melody
  * @version 1.0
  */
 public class Graph {
 
 	private static int instance = 0;
 	private final int id;
+	private int vertexQuantity;
 	private String name;
 	private List<Vertex> vertex;
 	private List<Arc> arcs;
 	
+	/**
+	 * Crée un graphe temporaire vide.<br>
+	 */
 	public Graph() {
 		this.id = -1;
+		this.name = "<Unknown>";
+		this.vertexQuantity = -1;
+		this.vertex = new ArrayList<Vertex>();
+		this.arcs = new ArrayList<Arc>();
 		Vertex.resetInstance();
 		Arc.resetInstance();
 	}
@@ -30,9 +39,10 @@ public class Graph {
 	 * @param vertex liste des sommets du graphe
 	 * @param arcs liste des arcs du graphe
 	 */
-	public Graph(String name, List<Vertex> vertex, List<Arc> arcs) {
+	public Graph(String name, int vertexQuantity, List<Vertex> vertex, List<Arc> arcs) {
 		this.id = instance++;
 		this.name = name;
+		this.vertexQuantity = vertexQuantity;
 		this.vertex = vertex;
 		this.arcs = arcs;
 	}
@@ -44,6 +54,7 @@ public class Graph {
 	public Graph(String name) {
 		this.id = instance++;
 		this.name = name;
+		this.vertexQuantity = -1;
 		this.vertex = new ArrayList<Vertex>();
 		this.arcs = new ArrayList<Arc>();
 		Vertex.resetInstance();
@@ -88,7 +99,7 @@ public class Graph {
 	 * @return <b>size</b> le nombre de sommets
 	 */
 	public int getVertexQuantity() {
-		return vertex.size();
+		return vertexQuantity;
 	}
 	
 	/**
@@ -114,6 +125,22 @@ public class Graph {
 	 */
 	public int getArcsQuantity() {
 		return arcs.size();
+	}
+	
+	/**
+	 * Définie le nom du graphe.<br>
+	 * @param name le nom
+	 */
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+	/**
+	 * Définie le nombre de sommets dans le graphe.<br>
+	 * @param vertexQuantity le nombre de sommets
+	 */
+	public void setVertexQuantity(int vertexQuantity) {
+		this.vertexQuantity = vertexQuantity;
 	}
 	
 	/**
@@ -190,8 +217,39 @@ public class Graph {
 		return "Graph : {\n"
 				+ "\tid : " + id + "\n"
 				+ "\tname : " + name + "\n"
+				+ "\nvertex quantity : " + vertexQuantity + "\n"
 				+ "\tvertex : {\n" + vertex.toString() + "\t}\n"
 				//+ "\tarcs : {\n" + arcs.toString() + "\t}\n"
 				+ "}\n";
 	}
+	
+	public Graph clone() {
+		Graph graph = new Graph();
+		List<Vertex> vertex = new ArrayList<Vertex>(this.vertexQuantity);
+		List<Arc> arcs = new ArrayList<Arc>(this.arcs.size());
+		for(Vertex v : this.vertex) {
+			vertex.add(v.clone());
+		}
+		for(Arc a : this.arcs) {
+			arcs.add(a.clone());
+		}
+		for(Arc a : arcs) {
+			a.setVertexA(vertex.get(a.getVertexA().getId()));
+			a.setVertexB(vertex.get(a.getVertexB().getId()));
+		}
+		for(Vertex v : vertex) {
+			List<Arc> tmp = new ArrayList<Arc>(v.getArcs().size());
+			for(int i=0; i<v.getArcs().size(); i++) {
+				tmp.add(arcs.get(v.getArc(i).getId()));
+			}
+			v.setArcs(tmp);
+		}
+		
+		graph.setName(this.name);
+		graph.setVertexQuantity(this.vertexQuantity);
+		graph.setVertex(vertex);
+		graph.setArcs(arcs);
+		return graph;
+	}
+	
 }

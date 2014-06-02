@@ -14,6 +14,7 @@ public class Vertex {
 	private static int instance = 0;
 	private final int id; 
 	private int vertex_weight;
+	private int cost;
 	private List<Arc> arcs;
 	
 	/**
@@ -80,6 +81,31 @@ public class Vertex {
 		return arcs.get(index);
 	}
 	
+	public int getCost() {
+		return cost;
+	}
+	
+	public void setCost(int cost) {
+		this.cost = cost;
+	}
+	
+	/**
+	 * Définie la liste des arcs de ce sommet.<br>
+	 * @param arcs la liste des arcs
+	 */
+	public void setArcs(List<Arc> arcs) {
+		this.arcs = arcs;
+	}
+	
+	/**
+	 * Ajoute un arc à la liste des arcs du sommet.<br>
+	 * @param a l'arc à ajouter
+	 * @return <b>true</b> si l'ajout s'est bien passé, sinon <b>false</b>
+	 */
+	public boolean addArc(Arc a) {
+		return arcs.add(a);
+	}
+	
 	/**
 	 * Ajoute des arcs au sommet.<br>
 	 * @param as les arcs à ajouter
@@ -100,6 +126,10 @@ public class Vertex {
 	 */
 	public boolean addArcs(List<Arc> as) {
 		return arcs.addAll(as);
+	}
+	
+	public boolean removeArc(Arc a) {
+			return arcs.remove(a);
 	}
 	
 	/**
@@ -130,6 +160,10 @@ public class Vertex {
 				+ "\tvertex_weight : " + vertex_weight + "\n"
 				+ "\tarcs : {\n" + arcs.toString() + "\t}\n"
 				+"}\n";
+	}
+	
+	public Vertex clone() {
+		return new Vertex(vertex_weight, arcs);
 	}
 
 }

@@ -1,15 +1,12 @@
 package fr.upem.jbidet.caterer.DAO;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-
-import javax.annotation.processing.FilerException;
 
 import fr.upem.jbidet.caterer.Core.Graph;
 
 /**
  * Implémente l'expression régulière et la méthode permettant de parser le fichier contenant le graphe.<br>
- * @author Jeremy
+ * @author Melody
  * @version 1.0
  */
 public interface FilePattern {
@@ -45,10 +42,10 @@ public interface FilePattern {
 	
 	/**
 	 * Extrait les données d'un graphe depuis un fichier et renvoie une instance de ce graphe.<br>
-	 * @param path le chemin venant vers le fichier qui contient le graphe à parser
-	 * @return <b>graph</b> le graphe d'après le fichier
-	 * @throws FilerException 
-	 * @throws FileNotFoundException 
+	 * L'utilisateur doit tester la valeur de retour de la méthode.<br>
+	 * @param file le fichier contenant le graphe
+	 * @return <b>graph</b> le graphe d'après le fichier,<br>
+	 * <b>null</b> si le fichier est corrompu 
 	 * @see Graph
 	 */
 	public Graph parseFile(File file);

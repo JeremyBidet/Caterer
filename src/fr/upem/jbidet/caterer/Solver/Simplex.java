@@ -220,7 +220,7 @@ public class Simplex {
 		Map<Integer, Vertex> map = new HashMap<Integer, Vertex>();
 		copy = removeLeaf(e.getVertexB(), e.getVertexA(), copy, map); // supprime les feuilles et colore le graphe
 		copy = extractCycle(e.getVertexB(), e.getVertexA(), copy, map); // supprime les sommets qui ne sont pas dans le cycle
-		cycle = fillCycle(e, e, cycle, copy); // remplit le cycle
+		cycle = fillCycle(e, e.getVertexA(), cycle, copy); // remplit le cycle
 		
 		// puis cherche dans ce cycle l'arc en sens inverse ayant le plus fort coût.
 		Arc f = e;
@@ -292,25 +292,26 @@ public class Simplex {
 		return copy;
 	}
 	
-	private static List<Arc> fillCycle(Arc arc, Arc e, List<Arc> cycle, List<Vertex> copy) {
+	private static List<Arc> fillCycle(Arc arc, Vertex e, List<Arc> cycle, List<Vertex> copy) {
 		if(e.equals(arc)) {
 			return cycle;
 		}
 		for(Vertex v : copy) {
-			if(arc.getVertexB().equals(v)) {
+			if(    (arc.getVertexB().equals(v) && arc.getVertexA().equals(e))
+				|| (arc.getVertexA().equals(v) && arc.getVertexB().equals(e))) {
 				for(Arc a : v.getArcs()) {
 					if(a.getVertexA().equals(v)) {
 						for(Vertex t : copy) {
 							if(a.getVertexB().equals(t)) {
 								cycle.add(a);
-								cycle = fillCycle(a, e, cycle, copy);
+								cycle = fillCycle(a, a.getVertexA(), cycle, copy);
 							}
 						}
 					} else {
 						for(Vertex t : copy) {
 							if(a.getVertexA().equals(t)) {
 								cycle.add(a);
-								cycle = fillCycle(a, e, cycle, copy);
+								cycle = fillCycle(a, a.getVertexB(), cycle, copy);
 							}
 						}
 					}

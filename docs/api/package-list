@@ -1,1 +1,4 @@
 fr.upem.jbidet.caterer
+fr.upem.jbidet.caterer.Core
+fr.upem.jbidet.caterer.DAO
+fr.upem.jbidet.caterer.Solver

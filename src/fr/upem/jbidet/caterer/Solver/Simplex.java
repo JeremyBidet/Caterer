@@ -218,7 +218,9 @@ public class Simplex {
 		List<Vertex> copy = new ArrayList<Vertex>(solution.getVertex());
 		List<Arc> cycle = new ArrayList<Arc>();
 		Map<Integer, Vertex> map = new HashMap<Integer, Vertex>();
-		findFRecursive(e.getVertexB(), e.getVertexA(), copy, map);
+		copy = removeLeaf(e.getVertexB(), e.getVertexA(), copy, map); // supprime les feuilles et colore le graphe
+		copy = extractCycle(e.getVertexB(), e.getVertexA(), copy, map); // supprime les sommets qui ne sont pas dans le cycle
+		cycle = fillCycle(e, e, cycle, copy); // remplit le cycle
 		
 		// puis cherche dans ce cycle l'arc en sens inverse ayant le plus fort coût.
 		Arc f = e;
@@ -236,7 +238,7 @@ public class Simplex {
 		updateFlow(cycle, e, f_flow);
 	}
 	
-	private static List<Vertex> findFRecursive(Vertex v, Vertex l, List<Vertex> copy, Map<Integer, Vertex> map) {
+	private static List<Vertex> removeLeaf(Vertex v, Vertex l, List<Vertex> copy, Map<Integer, Vertex> map) {
 		if(v.getArcs().size() == 1) { // feuille du graphe
 			copy.remove(v); // le sommet ne fait pas partie du cycle
 			map.put(v.hashCode(), v); // on ajoute le sommet à la liste des sommets déjà visités
@@ -248,35 +250,76 @@ public class Simplex {
 			}
 			if(a.getVertexA().equals(v)) {
 				if(!map.containsKey(v.hashCode())) {
-					copy = findFRecursive(a.getVertexB(), a.getVertexA(), copy, map);
+					copy = removeLeaf(a.getVertexB(), v, copy, map);
 				}
 			} else {
 				if(!map.containsKey(v.hashCode())) {
-					copy = findFRecursive(a.getVertexA(), a.getVertexB(), copy, map);
+					copy = removeLeaf(a.getVertexA(), v, copy, map);
 				}
 			}
 			if(!map.containsKey(v.hashCode())) {
 				map.put(v.hashCode(), v);
 			}
 		}
+		return copy;
+	}
+	
+	private static List<Vertex> extractCycle(Vertex v, Vertex l, List<Vertex> copy, Map<Integer, Vertex> map) {
 		/* cherche si le sommet possède un arc vers un sommet déjà visité non supprimé */
 		for(Arc a : v.getArcs()) {
+			boolean pass = false;
 			if(a.getVertexA().equals(l) || a.getVertexB().equals(l)) {
 				continue;
 			}
 			// si le sommet opposé de l'arc existe toujours et est visité alors v fait partie du cycle
-			if(	   (a.getVertexA().equals(v) && map.containsKey(a.getVertexB().hashCode()) && copy.contains(a.getVertexB()))
-				|| (a.getVertexB().equals(v) && map.containsKey(a.getVertexA().hashCode()) && copy.contains(a.getVertexA()))
-			 ) {
-				break;
+			if(a.getVertexA().equals(v)) {
+				if(map.containsKey(a.getVertexA().hashCode()) && copy.contains(a.getVertexA())) {
+					copy = extractCycle(a.getVertexB(), v, copy, map);
+					pass = true; // sommet du cycle confirmé, plus besoin de chercher dans les autres arcs de ce sommet
+				}
+			} else if(a.getVertexB().equals(v)) {
+				if(map.containsKey(a.getVertexB().hashCode()) && copy.contains(a.getVertexB())) {
+					copy = extractCycle(a.getVertexA(), v, copy, map);
+					pass = true; // sommet du cycle confirmé, plus besoin de chercher dans les autres arcs de ce sommet
+				}
 			} else {
 				copy.remove(v);
+			}
+			if(pass) {
+				break;
 			}
 		}
 		return copy;
 	}
 	
-
+	private static List<Arc> fillCycle(Arc arc, Arc e, List<Arc> cycle, List<Vertex> copy) {
+		if(e.equals(arc)) {
+			return cycle;
+		}
+		for(Vertex v : copy) {
+			if(arc.getVertexB().equals(v)) {
+				for(Arc a : v.getArcs()) {
+					if(a.getVertexA().equals(v)) {
+						for(Vertex t : copy) {
+							if(a.getVertexB().equals(t)) {
+								cycle.add(a);
+								cycle = fillCycle(a, e, cycle, copy);
+							}
+						}
+					} else {
+						for(Vertex t : copy) {
+							if(a.getVertexA().equals(t)) {
+								cycle.add(a);
+								cycle = fillCycle(a, e, cycle, copy);
+							}
+						}
+					}
+				}
+			}
+		}
+		return cycle; // should never called
+	}
+	
 	private static void updateFlow(List<Arc> cycle, Arc e, int flow) {
 		Vertex vA = e.getVertexB();
 		for(Arc a : cycle) {
